@@ -1,0 +1,106 @@
+
+services:
+  mongo:
+    image: mongo:6.0
+    container_name: cognitus-mongo
+    command: [ "--quiet" ] # reduce Mongo logs
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo-data:/data/db
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "500k"
+        max-file: "1"
+
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.2.1
+    container_name: zookeeper
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+    ports:
+      - "2181:2181"
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "500k"
+        max-file: "1"
+
+  kafka:
+    image: confluentinc/cp-kafka:7.2.1
+    container_name: kafka
+    depends_on:
+      - zookeeper
+    ports:
+      - "9092:9092"
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092,PLAINTEXT_HOST://localhost:9092
+      KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:9092,PLAINTEXT_HOST://0.0.0.0:29092
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "500k"
+        max-file: "1"
+
+  user-service:
+    build: ./microservice-user
+    container_name: user-service
+    ports:
+      - "4001:4001"
+    environment:
+      PORT: 4001
+      MONGO_URL: mongodb://mongo:27017/userdb
+      KAFKA_BROKER: kafka:9092
+    depends_on:
+      - mongo
+      - kafka
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "250k"
+        max-file: "1"
+
+  order-service:
+    build: ./microservice-order
+    container_name: order-service
+    ports:
+      - "4002:4002"
+    environment:
+      PORT: 4002
+      MONGO_URL: mongodb://mongo:27017/orderdb
+      KAFKA_BROKER: kafka:9092
+    depends_on:
+      - mongo
+      - kafka
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "250k"
+        max-file: "1"
+
+  notification-service:
+    build: ./microservice-notification
+    container_name: notification-service
+    ports:
+      - "4003:4003"
+    env_file:
+      - ./microservice-notification/.env.docker
+    depends_on:
+      - kafka
+      - mongo
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "250k"
+        max-file: "1"
+
+volumes:
+  mongo-data:

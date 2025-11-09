@@ -1,0 +1,39 @@
+# Node modules
+node_modules/
+**/node_modules/
+
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Build output
+dist/
+**/dist/
+
+# Environment variables
+.env
+**/.env.local
+**/.env.docker
+!.env.example   # Keep the example file
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Docker files
+**/docker-compose.override.yml
+**/.docker/
+
+# IDE/editor files
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+
+# Temporary files
+*.tmp
+*.swp
+*.bak
