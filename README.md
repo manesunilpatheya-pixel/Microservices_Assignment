@@ -1,5 +1,5 @@
 
-# 🚀 Microservices Backend Assignment
+# 🚀 Microservices POC
 
 **Stack:** Node.js + TypeScript + MongoDB + Kafka + Azure SignalR + Docker
 
